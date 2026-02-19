@@ -1,0 +1,29 @@
+name: Daily Schedule Update
+on:
+  schedule:
+    - cron: '0 4 * * *' # 4 AM daily
+  workflow_dispatch:      # Allows you to click a button to run it manually
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 python-dotenv
+      - name: Run Scraper
+        env:
+          UEK_LOGIN: ${{ secrets.UEK_LOGIN }}
+          UEK_PASSWORD: ${{ secrets.UEK_PASSWORD }}
+        run: python main.py 252671 # Your group ID
+      - name: Commit and Push
+        run: |
+          git config --global user.name 'Schedule-Bot'
+          git config --global user.email 'bot@uek.pl'
+          git add *.csv
+          git commit -m "Auto-update schedule" || exit 0
+          git push
